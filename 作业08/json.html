@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+		<title>省份信息展示</title>
+
+		<link rel="stylesheet" href="https://js.arcgis.com/4.11/esri/themes/light/main.css" />
+		<script src="https://js.arcgis.com/4.11/"></script>
+
+		<style>
+			html,
+			body,
+			#viewDiv {
+				padding: 0;
+				margin: 0;
+				height: 100%;
+				width: 100%;
+			}
+		</style>
+
+		<script>
+			require([
+				"esri/Map",
+				"esri/views/MapView",
+				"esri/layers/GeoJSONLayer",
+				"esri/widgets/Legend"
+			], function(Map, MapView, GeoJSONLayer, Legend) {
+				const defaultSym = {
+					type: "simple-fill", // autocasts as new SimpleFillSymbol()
+					outline: {
+						// autocasts as new SimpleLineSymbol()
+						color: [128, 128, 128, 0.2],
+						width: "0.5px"
+					}
+				};
+
+				/*****************************************************************
+				 * Set a color visual variable on the renderer. Color visual variables
+				 * create continuous ramps that map low data values to weak or
+				 * neutral colors and high data values to strong/deep colors. Features
+				 * with data values in between the min and max data values are assigned
+				 * a color proportionally between the min and max colors.
+				 *****************************************************************/
+
+				const renderer = {
+					type: "simple", // autocasts as new SimpleRenderer()
+					symbol: defaultSym,
+					label: "发病情况",
+					visualVariables: [{
+						type: "color",
+						field: "dead",
+						normalizationField: "all",
+						legendOptions: {
+							title: "各省份非洲猪瘟发病情况"
+						},
+						stops: [{
+								value: 0,
+								color: "#FFE4E1",
+								label: "0%"
+							},
+							{
+								value: 1,
+								color: "#FF3030",
+								label: "100%"
+							}
+						]
+					}]
+				};
+
+				const povLayer = new GeoJSONLayer({
+					url: "https://jiangjinbo.github.io/popular//chinawgs.json",
+					renderer: renderer,
+					title: "各省非洲猪瘟发病情况",
+					popupTemplate: {
+						// autocasts as new PopupTemplate()
+						title: "省份：{ENGLISH}",
+						content: "死亡数量：{dead} ，发病数量： {all} ，致死率{zhanbi}%",
+						fieldInfos: [{
+								fieldName: "dead",
+								format: {
+									digitSeparator: true,
+									places: 0
+								}
+							},
+							{
+								fieldName: "all",
+								format: {
+									digitSeparator: true,
+									places: 0
+								}
+							}
+						]
+					}
+				});
+
+				const map = new Map({
+					basemap: "gray",
+					layers: [povLayer]
+				});
+
+				const view = new MapView({
+					container: "viewDiv",
+					map: map,
+					center: [104.081472, 30.655704],
+					zoom: 4
+				});
+
+				view.ui.add(
+					new Legend({
+						view: view
+					}), "top-right"
+				);
+			});
+		</script>
+	</head>
+
+	<body>
+		<div id="viewDiv"></div>
+	</body>
+
+</html>
